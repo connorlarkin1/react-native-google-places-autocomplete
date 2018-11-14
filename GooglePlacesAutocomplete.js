@@ -186,32 +186,53 @@ export default class GooglePlacesAutocomplete extends Component {
         timeout: 20000
       }
     }
+    if (this.props.currentLocationOverride){
+      const { longitude, latitude } = this.props.currentLocationOverride;
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (this.props.nearbyPlacesAPI === 'None') {
-          let currentLocation = {
-            description: this.props.currentLocationLabel,
-            geometry: {
-              location: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              }
+      if (this.props.nearbyPlacesAPI === 'None') {
+        let currentLocation = {
+          description: this.props.currentLocationLabel,
+          geometry: {
+            location: {
+              lat: latitude,
+              lng: longitude
             }
-          };
+          }
+        };
 
-          this._disableRowLoaders();
-          this.props.onPress(currentLocation, currentLocation);
-        } else {
-          this._requestNearby(position.coords.latitude, position.coords.longitude);
-        }
-      },
-      (error) => {
         this._disableRowLoaders();
-        alert(error.message);
-      },
-      options
-    );
+        this.props.onPress(currentLocation, currentLocation);
+      } else {
+        this._requestNearby(latitude, longitude);
+      }
+    }
+    else {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (this.props.nearbyPlacesAPI === 'None') {
+            let currentLocation = {
+              description: this.props.currentLocationLabel,
+              geometry: {
+                location: {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                }
+              }
+            };
+
+            this._disableRowLoaders();
+            this.props.onPress(currentLocation, currentLocation);
+          } else {
+            this._requestNearby(position.coords.latitude, position.coords.longitude);
+          }
+        },
+        (error) => {
+          this._disableRowLoaders();
+          alert(error.message);
+        },
+        options
+      );
+    }
   }
 
   _onPress = (rowData) => {
@@ -765,7 +786,8 @@ GooglePlacesAutocomplete.propTypes = {
   suppressDefaultStyles: PropTypes.bool,
   numberOfLines: PropTypes.number,
   onSubmitEditing: PropTypes.func,
-  editable: PropTypes.bool
+  editable: PropTypes.bool,
+  currentLocationOverride: PropTypes.object,
 }
 GooglePlacesAutocomplete.defaultProps = {
   placeholder: 'Search',
@@ -811,7 +833,8 @@ GooglePlacesAutocomplete.defaultProps = {
   suppressDefaultStyles: false,
   numberOfLines: 1,
   onSubmitEditing: () => {},
-  editable: true
+  editable: true,
+  currentLocationOverride: null
 }
 
 // this function is still present in the library to be retrocompatible with version < 1.1.0
